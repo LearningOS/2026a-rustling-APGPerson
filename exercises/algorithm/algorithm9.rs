@@ -2,7 +2,7 @@
 	heap
 	This question requires you to implement a binary heap function
 */
-// I AM NOT DONE
+
 
 use std::cmp::Ord;
 use std::default::Default;
@@ -23,7 +23,7 @@ where
     pub fn new(comparator: fn(&T, &T) -> bool) -> Self {
         Self {
             count: 0,
-            items: vec![T::default()],
+            items: vec![],
             comparator,
         }
     }
@@ -37,7 +37,18 @@ where
     }
 
     pub fn add(&mut self, value: T) {
-        //TODO
+        self.count += 1;
+        let mut idx = self.items.len();
+        self.items.push(value);
+        while idx != 0{
+            let parent = self.parent_idx(idx);
+            if (self.comparator)(&self.items[parent],&self.items[idx]){
+                self.items.swap(idx, parent);
+                idx = parent;
+            }else{
+                return;
+            }
+        }
     }
 
     fn parent_idx(&self, idx: usize) -> usize {
@@ -45,7 +56,7 @@ where
     }
 
     fn children_present(&self, idx: usize) -> bool {
-        self.left_child_idx(idx) <= self.count
+        self.left_child_idx(idx) < self.count
     }
 
     fn left_child_idx(&self, idx: usize) -> usize {
@@ -57,8 +68,19 @@ where
     }
 
     fn smallest_child_idx(&self, idx: usize) -> usize {
-        //TODO
-		0
+        let mut idx = idx;
+        if !self.children_present(idx){
+            return idx;
+        }
+        if self.right_child_idx(idx) >= self.len(){
+            return self.left_child_idx(idx)
+        }
+        if (self.comparator)(&self.items[self.left_child_idx(idx)],&self.items[self.right_child_idx(idx)]){
+            idx = self.right_child_idx(idx)
+        }else{
+            idx = self.left_child_idx(idx)
+        }
+        idx
     }
 }
 
@@ -68,24 +90,43 @@ where
 {
     /// Create a new MinHeap
     pub fn new_min() -> Self {
-        Self::new(|a, b| a < b)
+        Self::new(|a, b| a > b)
     }
 
     /// Create a new MaxHeap
     pub fn new_max() -> Self {
-        Self::new(|a, b| a > b)
+        Self::new(|a, b| a < b)
     }
 }
 
 impl<T> Iterator for Heap<T>
 where
-    T: Default,
+    T: Default+std::fmt::Debug,
 {
     type Item = T;
 
     fn next(&mut self) -> Option<T> {
-        //TODO
-		None
+        if self.len() == 0{
+            return None;
+        }
+        let len = self.len() - 1;
+        self.items.swap(0, len);
+        let ret = self.items.pop();
+        self.count -= 1;
+        if self.len() == 0{
+            return ret
+        }
+        let mut cur = 0;
+        while self.children_present(cur){
+            let id = self.smallest_child_idx(cur);
+            if (self.comparator)(&self.items[cur],&self.items[id]){
+                self.items.swap(cur, id);
+                cur = id
+            }else{
+                return ret;
+            }
+        }
+        ret
     }
 }
 
@@ -97,7 +138,7 @@ impl MinHeap {
     where
         T: Default + Ord,
     {
-        Heap::new(|a, b| a < b)
+        Heap::new_min()
     }
 }
 
@@ -109,7 +150,7 @@ impl MaxHeap {
     where
         T: Default + Ord,
     {
-        Heap::new(|a, b| a > b)
+        Heap::new_max()
     }
 }
 

@@ -2,7 +2,7 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
+
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
@@ -56,11 +56,11 @@ impl<T> LinkedList<T> {
         self.length += 1;
     }
 
-    pub fn get(&mut self, index: i32) -> Option<&T> {
+    pub fn get(&self, index: i32) -> Option<&T> {
         self.get_ith_node(self.start, index)
     }
 
-    fn get_ith_node(&mut self, node: Option<NonNull<Node<T>>>, index: i32) -> Option<&T> {
+    fn get_ith_node(&self, node: Option<NonNull<Node<T>>>, index: i32) -> Option<&T> {
         match node {
             None => None,
             Some(next_ptr) => match index {
@@ -69,14 +69,39 @@ impl<T> LinkedList<T> {
             },
         }
     }
+}
+impl<T: Clone + PartialOrd> LinkedList<T>{
 	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
 	{
-		//TODO
-		Self {
+		let mut linkedlist = Self {
             length: 0,
             start: None,
             end: None,
+        };
+        let mut a_index= 0;
+        let mut b_index= 0;
+        let a_max = list_a.length;
+        let b_max = list_b.length;
+        while a_index < a_max || b_index < b_max{
+            if a_index >= a_max{
+                linkedlist.add(list_b.get(b_index as i32).expect("B cur overflow").clone());
+                b_index += 1;
+            }else if b_index >= b_max{
+                linkedlist.add(list_a.get(a_index as i32).expect("A cur overflow").clone());
+                a_index += 1;
+            }else{
+                let a_cur = list_a.get(a_index as i32).expect("A cur overflow");
+                let b_cur = list_b.get(b_index as i32).expect("B cur overflow");
+                if a_cur < b_cur{
+                    linkedlist.add(a_cur.clone());
+                    a_index += 1;
+                }else{
+                    linkedlist.add(b_cur.clone());
+                    b_index += 1;
+                }
+            }
         }
+        linkedlist
 	}
 }
 
